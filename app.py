@@ -1,0 +1,95 @@
+from importlib.resources import Resource
+from flask import Flask,jsonify,request
+from flask_restful import Api, Resource
+app = Flask(__name__)
+api = Api(app)
+
+
+def checkPostedData(postedData, functionName):
+    if (functionName == "add"):
+        if "x" not in postedData or "y" not in postedData:
+            return 301
+        else:
+            return 200
+class Add(Resource):
+    def post(self):
+        #If here then the resource was requested via POST
+
+        #Step 1: Get posted data:
+        postedData = request.get_json()
+
+        #Step 1b: Verify validity of posted data
+        status_code = checkPostedData(postedData, "add")
+        if (status_code!=200):
+            retJson = {
+                'Message':'An error happened',
+                "Status code":status_code
+            }
+            return jsonify(retJson)
+
+        #If here, then status code is 200
+        x = postedData["x"]
+        y = postedData["y"]
+        x = int(x)
+        y = int(y)
+
+        #Step 2: Add posted data
+        ret = x+y
+        retMap = {
+            "Message": ret,
+            "Status Code": 200
+        }
+        return jsonify(retMap)
+
+@app.route('/')
+def hello_world():
+    return "Hello world"
+
+@app.route('/hithere')
+def hi_there_everyone():
+    return "I just hit /hithere"
+
+@app.route('/add_two_nums', methods=["POST"])
+def add_two_nums():
+    #get x,y from the posted data
+    dataDict = request.get_json()
+     
+    if "y" not in dataDict:
+        return "ERROR", 305
+    x = dataDict["x"]
+    y = dataDict["y"]
+    #add z=x+y
+    z = x+y
+
+    #prepare a JSON "z":z
+    retJSON = { 
+        "z":z    
+    }
+
+    #return jsonify
+    return jsonify(retJSON), 200
+
+@app.route('/bye')
+def bye():
+    #Prepare a response for the request that came to /bye
+    age = 2*5
+    #c = 1/0
+    retJson = {
+        'Name':'Elfarouk',
+        'Age':age,
+	"phones":[
+            {
+		"phoneName": "Iphone8",
+		"phoneNumber": 11111
+	    },
+	    {
+		"phoneName": "Nokia",
+		"phoneNumber": 11121
+	    }
+	]
+	
+    }
+    return jsonify(retJson)
+
+if __name__=="__main__":
+    app.run(debug=True)
