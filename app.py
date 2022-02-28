@@ -22,7 +22,7 @@ class Add(Resource):
         status_code = checkPostedData(postedData, "add")
         if (status_code!=200):
             retJson = {
-                'Message':'An error happened',
+                "Message":"An error happened",
                 "Status code":status_code
             }
             return jsonify(retJson)
@@ -40,6 +40,17 @@ class Add(Resource):
             "Status Code": 200
         }
         return jsonify(retMap)
+
+class Subtract(Resource):
+    pass
+
+class Multiply(Resource):
+    pass
+
+class Divide(Resource):
+    pass
+
+api.add_resource(Add, "/add")
 
 @app.route('/')
 def hello_world():
