@@ -19,16 +19,16 @@ users = db["Users"]
 class Register(Resource):
     def post(self):
         #Step 1 get posted data by the user
-        postedData = request.get_json()
+        postedData = request.get_json(force=True)
 
         #Get the data
         username = postedData["username"]
         password = postedData["password"]
 
-        hashed_pw = hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+        hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-        #Store username and password into the database
-        users.insert({
+        #Store username and password into the database. Had to change insert to insert_one.
+        users.insert_one({
             "Username": username,
             "Password": hashed_pw,
             "Sentence": "",
@@ -40,6 +40,22 @@ class Register(Resource):
             "msg": "You successfully signed up for the API."
         }
         return jsonify(retJson)
+
+def verifyPw(username, password):
+    hashed_pw = users.find({
+        "Username":username
+    })[0]["Password"]
+
+    if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
+        return True
+    else:
+        return False
+
+def countTokens(username):
+    tokens = users.find({
+        "Username":username
+    })[0]["Tokens"]
+    return tokens
 
 class Store(Resource):
     def post(self):
@@ -69,20 +85,21 @@ class Store(Resource):
         #Step 5 store the sentence and return 200 OK
         users.update({
             "Username":username
-            }, {
-                "$set":{
+        }, {
+            "$set":{
                 "Sentence":sentence,
                 "Tokens":num_tokens-1
                 }
-            })
+        })
 
-            retJson = {
-                "status":200,
-                "msg":"Sentence saved successfully"
-            }
-            return jsonify(retJson)
+        retJson = {
+            "status":200,
+            "msg":"Sentence saved successfully"
+        }
+        return jsonify(retJson)
 
 api.add_resource(Register, '/register')
+api.add_resource(Store,  '/store')
 
 if __name__=="__main__":
     app.run(host='0.0.0.0')
