@@ -19,7 +19,7 @@ users = db["Users"]
 class Register(Resource):
     def post(self):
         #Step 1 get posted data by the user
-        postedData = request.get_json(force=True)
+        postedData = request.get_json()
 
         #Get the data
         username = postedData["username"]
@@ -43,7 +43,7 @@ class Register(Resource):
 
 def verifyPw(username, password):
     hashed_pw = users.find({
-        "Username":username
+        "Username": username
     })[0]["Password"]
 
     if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
@@ -53,7 +53,7 @@ def verifyPw(username, password):
 
 def countTokens(username):
     tokens = users.find({
-        "Username":username
+        "Username": username
     })[0]["Tokens"]
     return tokens
 
@@ -84,10 +84,10 @@ class Store(Resource):
             return jsonify(retJson)
         #Step 5 store the sentence and return 200 OK
         users.update_one({
-            "Username":username
+            "Username": username
         }, {
             "$set":{
-                "Sentence":sentence,
+                "Sentence": sentence,
                 "Tokens":num_tokens-1
                 }
         })
@@ -100,7 +100,7 @@ class Store(Resource):
 
 class Get(Resource):
     def post(self):
-        postedData = request.get_json()
+        postedData = request.get_json(force=True)
 
         username = postedData["username"]
         password = postedData["password"]
@@ -122,7 +122,7 @@ class Get(Resource):
 
         #Make the user pay
         users.update_one({
-            "Username":username
+            "Username": username
         }, {
             "$set":{
                 "Tokens":num_tokens-1
@@ -131,11 +131,12 @@ class Get(Resource):
         })
 
         sentence = users.find({
-            "username": username
+            "Username": username
         })[0]["Sentence"]
+
         retJson = {
-            "status":200,
-            "sentence": sentence
+            "status": 200,
+            "sentence": str(sentence)
         }
 
         return jsonify(retJson)
